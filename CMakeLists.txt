@@ -124,4 +124,4 @@ IF(NOT ZINT_HAS_BEEN_RUN_BEFORE)
     SET(ZINT_HAS_BEEN_RUN_BEFORE 1 CACHE INTERNAL "Flag to track whether this is the first time running CMake or if CMake has been configured before")
 ENDIF(NOT ZINT_HAS_BEEN_RUN_BEFORE)
 
-
+add_subdirectory(fuzzing)
