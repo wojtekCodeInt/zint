@@ -1,6 +1,5 @@
 description: >
-  Zint encodes data into barcodes, and is thus an ideal application
-  for a fuzzer to test and secure.
+  Zint uses raw data as input which can easily lead to memory errors. Fuzzing is specialized in finding those with little effort.
 
 ## The name of the container image used for building the fuzz tests
 build_container: "cifuzz/builders:zint"
@@ -22,7 +21,8 @@ build_container: "cifuzz/builders:zint"
 
 ## Paths to the fuzz tests to execute
 fuzz_tests:
-  - .code-intelligence/fuzz_targets/*.cpp
+ # - .code-intelligence/fuzz_targets/[b-z]*.cpp
+  - .code-intelligence/fuzz_targets/all_barcodes_fuzzer.cpp
 
 ## The sanitizers to use for the fuzz tests
 ## By default, only address sanitizer is used.
