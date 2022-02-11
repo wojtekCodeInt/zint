@@ -1,46 +1,43 @@
 name: CI Fuzz
 
 on:
+  push:
+    branches: [ release-test ]
   pull_request:
     branches: [ master ]
 
 env:
-  FUZZING_SERVER_ADDRESS: app.code-intelligence.com:6773
-  WEB_APP_ADDRESS:  https://app.code-intelligence.com
-  PROJECT_ID: projects/organizations_89d295318b3fded6_zint_git-f0f07698
+  FUZZING_SERVER_ADDRESS: release-cicd-test.code-intelligence.com:6773
+  WEB_APP_ADDRESS:  https://release-cicd-test.code-intelligence.com
 
 
 jobs:
   fuzz_tests:
     runs-on: ubuntu-latest
     steps:
-      - run: ls -la
-        working-directory: ${{ github.workspace }}
       - id: start-fuzzing
         name: Build and Instrument
-        uses: CodeIntelligenceTesting/github-actions/start-fuzzing@v3
+        uses: CodeIntelligenceTesting/github-actions/start-fuzzing@dev
         with:
-          ci_fuzz_api_token: ${{ secrets.CI_FUZZ_API_TOKEN }}
-          project: ${{ env.PROJECT_ID }}
+          ci_fuzz_api_token: ${{ secrets.CI_FUZZ_RELEASE_TEST_API_TOKEN }}
           git_reference: ${{ github.sha }}
           fuzzing_server_address: ${{ env.FUZZING_SERVER_ADDRESS }}
       - id: monitor-fuzzing
         name: Fuzzing
-        uses: CodeIntelligenceTesting/github-actions/monitor-fuzzing@v3
+        uses: CodeIntelligenceTesting/github-actions/monitor-fuzzing@dev
         with:
-          ci_fuzz_api_token: ${{ secrets.CI_FUZZ_API_TOKEN }}
+          ci_fuzz_api_token: ${{ secrets.CI_FUZZ_RELEASE_TEST_API_TOKEN }}
           test_collection_run: ${{ steps.start-fuzzing.outputs.test_collection_run }}
           fuzzing_server_address: ${{ env.FUZZING_SERVER_ADDRESS }}
           dashboard_address: ${{ env.WEB_APP_ADDRESS }}
       - id: save-results
         name: Save Fuzz Test Results
-        uses: CodeIntelligenceTesting/github-actions/save-results@v3
-        if: ${{ github.event_name == 'pull_request' && (success() || failure()) }}
+        uses: CodeIntelligenceTesting/github-actions/save-results@dev
+        if: ${{ success() || failure() }}
         with:
+          ci_fuzz_api_token: ${{ secrets.CI_FUZZ_RELEASE_TEST_API_TOKEN }}
           test_collection_run: ${{ steps.start-fuzzing.outputs.test_collection_run }}
-          ci_fuzz_api_token: ${{ secrets.CI_FUZZ_API_TOKEN }}
           fuzzing_server_address: ${{ env.FUZZING_SERVER_ADDRESS }}
-          project: ${{env.PROJECT_ID}}
           dashboard_address: ${{ env.WEB_APP_ADDRESS }}
       - id: upload-artifact
         uses: actions/upload-artifact@v2
@@ -51,4 +48,4 @@ jobs:
             findings.json
             coverage.json
             web_app_address.txt
-          
+
