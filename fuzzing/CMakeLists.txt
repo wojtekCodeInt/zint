@@ -1,17 +1,21 @@
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "/opt/ci-fuzz-2.22.0/lib/cmake")
-
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CIFUZZ_INSTALL_ROOT}/share/cmake")
 
 find_package(CIFuzz)
 
-add_cifuzz_test(ean_fuzzer
-        SOURCES     fuzz_targets/ean_fuzzer.cpp
-        MAX_RUNTIME "30m"
-        PARALLEL_EXECUTIONS "2"
-        SEED_CORPUS "a/b/c"
-        TARGET_ARGS -foo --target=1
-	ENGINE_ARGS -detect_leaks=0 -use_value_profile=1
-)
+file(GLOB targets "fuzz_targets/*.cpp")
+foreach(fuzzer_source ${targets})
 
-cifuzz_test_link_libraries(ean_fuzzer zint)
+  get_filename_component(fuzzer ${fuzzer_source} NAME_WE)
 
-target_include_directories(ean_fuzzer PRIVATE ../backend)
+  add_cifuzz_test(${fuzzer}
+    SOURCES     ${fuzzer_source}
+    MAX_RUNTIME "30m"
+    PARALLEL_EXECUTIONS "2"
+    SEED_CORPUS "${CMAKE_CURRENT_SOURCE_DIR}/seeds/${fuzzer}"
+  )
+  
+  cifuzz_test_link_libraries(${fuzzer} zint)
+  
+  target_include_directories(${fuzzer} PRIVATE ../backend)
+
+endforeach()
