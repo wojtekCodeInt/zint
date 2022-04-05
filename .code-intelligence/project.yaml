@@ -22,8 +22,8 @@ run_container: "gcr.io/oss-fuzz-base/base-runner"
 ## Paths to the fuzz tests to execute
 fuzz_tests:
  # - .code-intelligence/fuzz_targets/[b-z]*.cpp
-  - .code-intelligence/fuzz_targets/all_barcodes_fuzzer.cpp
-  - .code-intelligence/fuzz_targets/ean_fuzzer.cpp
+  - .code-intelligence/fuzz_targets/all_barcodes_fuzzer2.cpp
+  #- .code-intelligence/fuzz_targets/ean_fuzzer.cpp
 
 ## The sanitizers to use for the fuzz tests
 ## By default, only address sanitizer is used.
@@ -39,7 +39,7 @@ engines:
 
 ## The run time after which the fuzz tests are cancelled and
 ## considered as having passed. Default value is 30 minutes.
-max_runtime: "30m0s"
+max_runtime: "3h0m0s"
 
 ## The number of parallel executions per fuzz test
 parallel_executions: 1
