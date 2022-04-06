@@ -6,7 +6,7 @@ build_container: "cifuzz/builder-zint:ubuntu_latest"
 
 ## The name of the container image used for running the fuzz tests. If
 ## unspecified, the image of the build container is used.
-run_container: "gcr.io/oss-fuzz-base/base-runner"
+#run_container: "gcr.io/oss-fuzz-base/base-runner"
 
 ## A list of source and destination paths. The source paths will be
 ## bind-mounted from the host filesystem to the destination paths in
@@ -39,7 +39,7 @@ engines:
 
 ## The run time after which the fuzz tests are cancelled and
 ## considered as having passed. Default value is 30 minutes.
-max_runtime: "3h0m0s"
+max_runtime: "3h10m0s"
 
 ## The number of parallel executions per fuzz test
 parallel_executions: 1
