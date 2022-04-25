@@ -7,10 +7,11 @@
 #include "common.h"
 #include "gs1.h"
 #include <unistd.h>
-
+#include <cstring>
+#include <file_input.h>
 #include <fuzzer/FuzzedDataProvider.h>
 
-int ZBarcode_Buffer(struct zint_symbol *symbol, int rotate_angle);
+
 
 const int BARCODES[] = {
 BARCODE_CODE11,//          1
@@ -128,7 +129,7 @@ extern "C" int FUZZ(const unsigned char *Data, size_t Size)
 
   int fuzzed_int = dp.ConsumeIntegral<int>();
   int fuzzed_int2 = dp.ConsumeIntegral<int>();
-  int fuzzed_int3 = dp.ConsumeIntegral<int>();
+  int fuzzed_int3 = dp.ConsumeIntegral<int>(); // unused
   int fuzzed_symbology = dp.PickValueInArray(BARCODES);
   bool fuzzed_bool = dp.ConsumeBool();
   bool fuzzed_bool2 = dp.ConsumeBool();
@@ -136,7 +137,6 @@ extern "C" int FUZZ(const unsigned char *Data, size_t Size)
   int rotate_angle = dp.ConsumeIntegral<int>();
   auto remaining = dp.ConsumeRemainingBytes<unsigned char>();
 
-  if (fuzzed_bool3) rotate_angle = (rotate_angle % 4) * 90; // ZBarcode_Print exits if angle is not a multiple of 90
 
   struct zint_symbol *my_symbol = ZBarcode_Create();
   if (fuzzed_bool) {  
@@ -147,12 +147,10 @@ extern "C" int FUZZ(const unsigned char *Data, size_t Size)
   if (fuzzed_bool2) {
       my_symbol->input_mode = fuzzed_int2;
   }
-
-  ZBarcode_Encode_and_Buffer_Vector(my_symbol, remaining.data(), remaining.size(), rotate_angle);
-  ZBarcode_Encode_and_Buffer(my_symbol, remaining.data(), remaining.size(), rotate_angle);
-  ZBarcode_Encode_and_Print(my_symbol, remaining.data(), remaining.size(), rotate_angle);
-  //ZBarcode_Encode(my_symbol, remaining.data(), remaining.size());
-  ZBarcode_Clear(my_symbol);
+  auto ci_file_input = ci::input_file{remaining.data(), remaining.size()};
+  char * filename = strdup(ci_file_input.name()); // needed because ZBarcode_Encode_File does not accept const char *
+  ZBarcode_Encode_File(my_symbol, filename);
+  free(filename);
   ZBarcode_Delete(my_symbol);
 
   return 0;

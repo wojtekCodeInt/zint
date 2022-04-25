@@ -119,6 +119,9 @@ BARCODE_ULTRA,//           144
 BARCODE_RMQR,//            145
 };
 
+const char formats[][9] = {"FILE.PNG", "FILE.BMP", "FILE.PCX", "FILE.GIF",
+ "FILE.TIF", "FILE.TXT", "FILE.EPS", "FILE.SVG", "FILE.EMF", "FILE.000"};
+
 extern "C" int FUZZ(const unsigned char *Data, size_t Size)
 {
   if (Size < 20 || Size > 1020)
@@ -128,15 +131,15 @@ extern "C" int FUZZ(const unsigned char *Data, size_t Size)
 
   int fuzzed_int = dp.ConsumeIntegral<int>();
   int fuzzed_int2 = dp.ConsumeIntegral<int>();
-  int fuzzed_int3 = dp.ConsumeIntegral<int>();
+  int fuzzed_format_index  = dp.ConsumeIntegralInRange(0,9);
   int fuzzed_symbology = dp.PickValueInArray(BARCODES);
   bool fuzzed_bool = dp.ConsumeBool();
   bool fuzzed_bool2 = dp.ConsumeBool();
   bool fuzzed_bool3 = dp.ConsumeBool(); //unused
-  int rotate_angle = dp.ConsumeIntegral<int>();
+  int rotate_angle = dp.PickValueInArray({0,90,180,270}); // to fuzz plot_raster more
+  //int rotate_angle = dp.ConsumeIntegral<int>();
   auto remaining = dp.ConsumeRemainingBytes<unsigned char>();
 
-  if (fuzzed_bool3) rotate_angle = (rotate_angle % 4) * 90; // ZBarcode_Print exits if angle is not a multiple of 90
 
   struct zint_symbol *my_symbol = ZBarcode_Create();
   if (fuzzed_bool) {  
@@ -147,11 +150,11 @@ extern "C" int FUZZ(const unsigned char *Data, size_t Size)
   if (fuzzed_bool2) {
       my_symbol->input_mode = fuzzed_int2;
   }
+  strcpy(my_symbol->outfile, formats[fuzzed_format_index]);
+  // printf("%s\n",my_symbol->outfile);
+      
 
-  ZBarcode_Encode_and_Buffer_Vector(my_symbol, remaining.data(), remaining.size(), rotate_angle);
-  ZBarcode_Encode_and_Buffer(my_symbol, remaining.data(), remaining.size(), rotate_angle);
   ZBarcode_Encode_and_Print(my_symbol, remaining.data(), remaining.size(), rotate_angle);
-  //ZBarcode_Encode(my_symbol, remaining.data(), remaining.size());
   ZBarcode_Clear(my_symbol);
   ZBarcode_Delete(my_symbol);
 
